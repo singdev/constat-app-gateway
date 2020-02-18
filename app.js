@@ -10,7 +10,6 @@ const PORT = process.env.PORT || 2467;
 const app = express();
 app.use(bodyParser.json());
 
-
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, '/tmp/uploads');
@@ -26,21 +25,22 @@ const cpUploads = upload.fields([
     { name: 'gallery', maxCount: 8 },
     { name: 'croquis', maxCount: 2 },
     { name: 'signature', maxCount: 2 },
-    { name: 'degat', maxCount: 2 }
 ]);
 
 const router = express.Router();
 router.post('/send', cpUploads, (req, res) => {
     const form = new FormData();
+    console.log(req.body);
     for (let key in req.body) {
         form.append(key, req.body[key]);
     }
     for (let key in req.files) {
-        console.log(key);
+        console.log("++key " + key);
         for (let i = 0; i < req.files[key].length; i++) {
             form.append(key, fs.createReadStream('/tmp/uploads/' + req.files[key][i].filename));
         }
     }
+    console.log("Send request to another server");
     let request = http.request({
         method: 'post',
         host: '127.0.0.1',
@@ -49,15 +49,21 @@ router.post('/send', cpUploads, (req, res) => {
         headers: form.getHeaders()
     }, (response) => {
         response.on('data', (data) => {
-            res.json(JSON.parse(data));
-            for (let key in req.files) {
-                for (let i = 0; i < req.files[key].length; i++) {
-                    fs.unlink('/tmp/uploads/' + req.files[key][i].filename, (err) => {
-                        if (err) {
-                            console.log("not delete " + req.files[key][i].filename);
-                        }
-                    });
+            console.log(data);
+            try {
+                res.json(JSON.parse(data));
+                for (let key in req.files) {
+                    for (let i = 0; i < req.files[key].length; i++) {
+                        fs.unlink('/tmp/uploads/' + req.files[key][i].filename, (err) => {
+                            if (err) {
+                                console.log("not delete " + req.files[key][i].filename);
+                            }
+                        });
+                    }
                 }
+            } catch (e) {
+                console.log(e);
+                res.sendStatus(500);
             }
         });
     });
