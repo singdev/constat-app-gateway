@@ -23,8 +23,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 const cpUploads = upload.fields([
     { name: 'gallery', maxCount: 8 },
-    { name: 'croquis', maxCount: 2 },
-    { name: 'signature', maxCount: 2 },
+    { name: 'croquis', maxCount: 4 },
+    { name: 'signature', maxCount: 4 },
 ]);
 
 const router = express.Router();
@@ -43,7 +43,7 @@ router.post('/send', cpUploads, (req, res) => {
     console.log("Send request to another server");
     let request = http.request({
         method: 'post',
-        host: '127.0.0.1',
+        host: '54.38.190.167',
         port: 2469,
         path: '/registry',
         headers: form.getHeaders()
@@ -77,7 +77,7 @@ router.get('/download/:numero', (req, res) => {
     console.log("get download pdf");
     let request = http.request({
         method: 'get',
-        host: '127.0.0.1',
+        host: '54.38.190.167',
         port: 2469,
         path: '/registry/' + req.params.numero,
     }, (response) => {
@@ -86,7 +86,7 @@ router.get('/download/:numero', (req, res) => {
             console.log(form);
             let request2 = http.request({
                 method: 'post',
-                host: '127.0.0.1',
+                host: '54.38.190.167',
                 port: 2468,
                 path: '/pdf',
                 headers: { 'Content-Type': 'application/json' }
